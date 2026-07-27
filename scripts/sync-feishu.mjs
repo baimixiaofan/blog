@@ -1,21 +1,20 @@
 #!/usr/bin/env node
-// 飞书文档同步脚本 — 双模式
-//
-// 模式 A: 列出整个知识库(需要 App 是知识库成员,设 FEISHU_SPACE_ID)
-// 模式 B: 同步 URL 列表里指定的文档(只需 docx 读取权限,设 FEISHU_DOC_URLS)
+// 飞书知识库同步脚本 (模式 A:整库自动同步)
 //
 // 用法:
-//   模式 A: FEISHU_APP_ID=... FEISHU_APP_SECRET=... FEISHU_SPACE_ID=... node scripts/sync-feishu.mjs
-//   模式 B: FEISHU_APP_ID=... FEISHU_APP_SECRET=... FEISHU_DOC_URLS="url1,url2,url3" node scripts/sync-feishu.mjs
+//   FEISHU_APP_ID=... FEISHU_APP_SECRET=... FEISHU_WIKI_URL=https://xxx.feishu.cn/wiki/<token> node scripts/sync-feishu.mjs
 //
-// 输出: src/content/blog/feishu-<slug>.md
+// FEISHU_WIKI_URL 是知识库里任一文档的完整 URL。
+// 脚本会从 URL 提取 token,用 get_node 解析出 space_id,然后列出所有文档。
+//
+// App 必须有 wiki:wiki:readonly + docx:document:readonly 权限,且被授权访问该知识库。
 
-import { writeFile, mkdir, readdir, readFile, unlink } from 'node:fs/promises';
+import { writeFile, mkdir, readdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const APP_ID = process.env.FEISHU_APP_ID;
 const APP_SECRET = process.env.FEISHU_APP_SECRET;
-const SPACE_ID = process.env.FEISHU_SPACE_ID;
+const WIKI_URL = process.env.FEISHU_WIKI_URL;
 const DOC_URLS = (process.env.FEISHU_DOC_URLS || '')
   .split(/[,\n]/)
   .map(s => s.trim())
@@ -28,62 +27,68 @@ if (!APP_ID || !APP_SECRET) {
   console.error('缺少 FEISHU_APP_ID 或 FEISHU_APP_SECRET');
   process.exit(1);
 }
-if (!SPACE_ID && DOC_URLS.length === 0) {
-  console.error('需要 FEISHU_SPACE_ID (模式 A) 或 FEISHU_DOC_URLS (模式 B)');
+if (!WIKI_URL && DOC_URLS.length === 0) {
+  console.error('需要 FEISHU_WIKI_URL (整库模式) 或 FEISHU_DOC_URLS (URL 列表模式)');
   process.exit(1);
 }
 
 async function api(path, init = {}, token) {
-  const url = `${BASE}${path}`;
   const headers = { ...init.headers };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(url, { ...init, headers });
+  const res = await fetch(`${BASE}${path}`, { ...init, headers });
   const data = await res.json();
   if (data.code !== 0) {
-    throw new Error(`Feishu API error ${data.code}: ${data.msg} (path: ${path})`);
+    const e = new Error(`Feishu API error ${data.code}: ${data.msg} (path: ${path})`);
+    e.code = data.code;
+    throw e;
   }
   return data.data;
 }
 
-async function apiFlat(path, init = {}) {
-  const res = await fetch(`${BASE}${path}`, { ...init, headers: { ...init.headers } });
-  const data = await res.json();
-  if (data.code !== 0) {
-    throw new Error(`Feishu API error ${data.code}: ${data.msg} (path: ${path})`);
-  }
-  return data;
-}
-
 async function getTenantToken() {
-  const data = await apiFlat('/auth/v3/tenant_access_token/internal', {
+  const res = await fetch(`${BASE}/auth/v3/tenant_access_token/internal`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ app_id: APP_ID, app_secret: APP_SECRET }),
   });
+  const data = await res.json();
+  if (data.code !== 0) {
+    throw new Error(`Feishu API error ${data.code}: ${data.msg} (auth)`);
+  }
   return data.tenant_access_token;
 }
 
-async function listAllNodes(token) {
+function extractTokenFromUrl(url) {
+  const m = url.match(/\/(wiki|docx|docs)\/([A-Za-z0-9_-]+)/);
+  return m ? m[2] : null;
+}
+
+async function resolveSpaceId(token, t) {
+  const params = new URLSearchParams({ token, obj_type: 'wiki' });
+  const data = await api(`/wiki/v2/spaces/get_node?${params}`, {}, t);
+  if (!data.node?.space_id) {
+    throw new Error('get_node 返回里找不到 space_id');
+  }
+  return { spaceId: data.node.space_id, nodeToken: data.node.node_token, title: data.node.title };
+}
+
+async function listAllNodes(spaceId, t) {
   const all = [];
   let pageToken;
   do {
     const params = new URLSearchParams();
     if (pageToken) params.set('page_token', pageToken);
-    const data = await api(`/wiki/v2/spaces/${SPACE_ID}/nodes${params.toString() ? '?' + params : ''}`, {}, token);
+    const qs = params.toString();
+    const data = await api(`/wiki/v2/spaces/${spaceId}/nodes${qs ? '?' + qs : ''}`, {}, t);
     all.push(...(data.items || []));
     pageToken = data.page_token;
   } while (pageToken);
   return all;
 }
 
-async function getDocContent(token, objToken) {
-  const data = await api(`/docx/v1/documents/${objToken}/raw_content?lang=zh`, {}, token);
+async function getDocContent(t, objToken) {
+  const data = await api(`/docx/v1/documents/${objToken}/raw_content?lang=zh`, {}, t);
   return data.content;
-}
-
-function extractTokenFromUrl(url) {
-  const m = url.match(/\/(wiki|docx|docs)\/([A-Za-z0-9_-]+)/);
-  return m ? m[2] : null;
 }
 
 function sanitizeSlug(s) {
@@ -107,13 +112,13 @@ async function cleanOldFeishuFiles() {
   }
 }
 
-async function writeDoc({ token, title, content, sourceUrl }) {
+async function writeDoc({ title, content, sourceUrl }) {
   const slug = sanitizeSlug(title);
   const date = new Date().toISOString().slice(0, 10);
   const fm = [
     '---',
     `title: ${yamlEscape(title)}`,
-    `summary: ${yamlEscape(`飞书云文档 · ${date}`)}`,
+    `summary: ${yamlEscape(`飞书云文档 · 同步于 ${date}`)}`,
     `date: ${date}`,
     `url: ${sourceUrl}`,
     '---',
@@ -136,7 +141,7 @@ async function main() {
   await cleanOldFeishuFiles();
 
   if (DOC_URLS.length > 0) {
-    console.log(`3. 模式 B:同步 ${DOC_URLS.length} 个 URL ...`);
+    console.log(`3. URL 列表模式:同步 ${DOC_URLS.length} 个文档 ...`);
     for (const url of DOC_URLS) {
       const objToken = extractTokenFromUrl(url);
       if (!objToken) {
@@ -146,19 +151,36 @@ async function main() {
       const content = await getDocContent(token, objToken);
       const titleMatch = content.match(/^#\s+(.+)$/m);
       const title = titleMatch ? titleMatch[1].trim() : objToken;
-      await writeDoc({ token, title, content, sourceUrl: url });
+      await writeDoc({ title, content, sourceUrl: url });
     }
   } else {
-    console.log('3. 模式 A:列出知识库节点 ...');
-    const nodes = await listAllNodes(token);
-    console.log(`   ${nodes.length} 个节点`);
+    console.log('3. 整库模式:从 URL 解析 token ...');
+    const urlToken = extractTokenFromUrl(WIKI_URL);
+    if (!urlToken) {
+      throw new Error(`无法从 WIKI_URL 提取 token: ${WIKI_URL}`);
+    }
+    console.log(`   token: ${urlToken}`);
+
+    console.log('4. 用 get_node 解析出 space_id ...');
+    const { spaceId, title: rootTitle } = await resolveSpaceId(urlToken, token);
+    console.log(`   space_id: ${spaceId}  根节点: ${rootTitle}`);
+
+    console.log('5. 列出所有节点 ...');
+    const nodes = await listAllNodes(spaceId, token);
+    console.log(`   共 ${nodes.length} 个节点`);
+
     const docs = nodes.filter(n => n.obj_type === 'docx' || n.obj_type === 'doc');
     console.log(`   其中 ${docs.length} 个文档`);
-    console.log('4. 拉取并写入每个文档 ...');
+
+    console.log('6. 拉取并写入每个文档 ...');
     for (const doc of docs) {
-      const content = await getDocContent(token, doc.obj_token);
-      const url = `https://feishu.cn/wiki/${doc.node_token}`;
-      await writeDoc({ token, title: doc.title || 'untitled', content, sourceUrl: url });
+      try {
+        const content = await getDocContent(token, doc.obj_token);
+        const url = `https://feishu.cn/wiki/${doc.node_token}`;
+        await writeDoc({ title: doc.title || 'untitled', content, sourceUrl: url });
+      } catch (err) {
+        console.warn(`   ✗ 跳过 ${doc.title || doc.node_token}: ${err.message}`);
+      }
     }
   }
 
@@ -167,14 +189,17 @@ async function main() {
 
 main().catch(err => {
   console.error('\n✗ 同步失败:', err.message);
-  if (err.message.includes('99991663')) {
-    console.error('  → 权限不足:App 缺少 docx:document:readonly 权限');
-  } else if (err.message.includes('99991672') || err.message.includes('231001')) {
-    console.error('  → App ID/Secret 错误');
-  } else if (err.message.includes('131002')) {
-    console.error('  → space_id 错误 (需要数字 ID,不是 URL token)');
-  } else if (err.message.includes('230002')) {
-    console.error('  → 文档 token 无效或 App 无权访问该文档');
+  if (err.code === 99991663) {
+    console.error('\n  → 权限不足。检查:');
+    console.error('    1. App 是否已开启机器人能力(应用能力 → 机器人)');
+    console.error('    2. App 是否被加进知识库(知识库根目录 → 成员管理 → 添加 → 搜 App 名字)');
+    console.error('    3. App 是否有 wiki:wiki:readonly + docx:document:readonly 权限');
+  } else if (err.code === 99991672 || err.code === 231001) {
+    console.error('  → App ID 或 App Secret 错误');
+  } else if (err.code === 131002) {
+    console.error('  → 知识库不存在或 App 无权访问');
+  } else if (err.code === 230002) {
+    console.error('  → 文档 token 无效');
   }
   process.exit(1);
 });
