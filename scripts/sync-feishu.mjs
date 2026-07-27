@@ -72,6 +72,13 @@ async function resolveSpaceId(token, t) {
   return { spaceId: data.node.space_id, nodeToken: data.node.node_token, title: data.node.title };
 }
 
+async function resolveNodeToObj(nodeToken, t) {
+  const params = new URLSearchParams({ token: nodeToken, obj_type: 'wiki' });
+  const data = await api(`/wiki/v2/spaces/get_node?${params}`, {}, t);
+  const node = data.node;
+  return { objToken: node.obj_token, title: node.title, objType: node.obj_type };
+}
+
 async function listAllNodes(spaceId, t) {
   const all = [];
   let pageToken;
@@ -87,7 +94,9 @@ async function listAllNodes(spaceId, t) {
 }
 
 async function getDocContent(t, objToken) {
-  const data = await api(`/docx/v1/documents/${objToken}/raw_content?lang=zh`, {}, t);
+  // 注意:有些文档/账号组合传 lang=zh 会返回 99992402 字段验证错误
+  // 不传 lang 是最稳的写法
+  const data = await api(`/docx/v1/documents/${objToken}/raw_content`, {}, t);
   return data.content;
 }
 
@@ -143,14 +152,20 @@ async function main() {
   if (DOC_URLS.length > 0) {
     console.log(`3. URL 列表模式:同步 ${DOC_URLS.length} 个文档 ...`);
     for (const url of DOC_URLS) {
-      const objToken = extractTokenFromUrl(url);
-      if (!objToken) {
+      const wikiToken = extractTokenFromUrl(url);
+      if (!wikiToken) {
         console.warn(`   ✗ 无法从 URL 提取 token: ${url}`);
+        continue;
+      }
+      // URL 里的 token 是 wiki node token,需先解析出 docx obj_token
+      const { objToken, title: wikiTitle, objType } = await resolveNodeToObj(wikiToken, token);
+      if (objType !== 'docx') {
+        console.warn(`   ✗ 跳过 ${wikiTitle || wikiToken}: obj_type=${objType} (暂只支持 docx)`);
         continue;
       }
       const content = await getDocContent(token, objToken);
       const titleMatch = content.match(/^#\s+(.+)$/m);
-      const title = titleMatch ? titleMatch[1].trim() : objToken;
+      const title = titleMatch ? titleMatch[1].trim() : wikiTitle;
       await writeDoc({ title, content, sourceUrl: url });
     }
   } else {
