@@ -1,0 +1,21 @@
+---
+// 奶龙全局水印背景。用户需将图片放到 public/images/milk-dragon.png
+// 缺失时自动隐藏
+---
+<div class="milk-dragon-bg" aria-hidden="true">
+  <img src="/images/milk-dragon.png" alt="" onerror="this.style.display='none'" />
+</div>
+
+<style>
+  .milk-dragon-bg {
+    position: fixed;
+    right: 5vw;
+    bottom: 5vh;
+    width: 320px;
+    height: 320px;
+    opacity: 0.1;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .milk-dragon-bg img { width: 100%; height: 100%; object-fit: contain; }
+</style>
