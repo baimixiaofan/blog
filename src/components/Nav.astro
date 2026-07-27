@@ -1,0 +1,28 @@
+---
+const path = Astro.url.pathname;
+const links = [
+  { href: '/', label: '首页' },
+  { href: '/about', label: '关于' },
+  { href: '/projects', label: '项目' },
+  { href: '/blog', label: '博客' },
+  { href: '/links', label: '友链' },
+];
+---
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="/" class="brand">范升耀</a>
+    <ul>
+      {links.map(l => (
+        <li><a href={l.href} class:list={[{ active: path === l.href }]}>{l.label}</a></li>
+      ))}
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .nav { border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(8px); z-index: 10; }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; padding-bottom: 1rem; }
+  .brand { font-weight: 600; color: var(--text); }
+  ul { display: flex; gap: 1.5rem; list-style: none; padding: 0; margin: 0; }
+  a.active { color: var(--accent); }
+</style>
