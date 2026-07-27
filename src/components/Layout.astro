@@ -21,10 +21,18 @@ const { title, description = '范升耀 - 个人博客' } = Astro.props;
   </head>
   <body>
     <MilkDragonBg />
-    <Nav />
+    <header class="site-header">
+      <div class="site-header-inner">
+        <h1 class="site-title"><a href="/">范升耀</a></h1>
+        <Nav />
+      </div>
+    </header>
     <main>
       <slot />
     </main>
     <Footer />
+    <div class="tools-wrapper">
+      <a href="#" onclick="window.scrollTo(0,0);return false;" title="回到顶部">↑</a>
+    </div>
   </body>
 </html>
