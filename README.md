@@ -22,11 +22,11 @@ The site deploys to `https://baimeixiaofan.xyz` via SSH/SCP. Requires the local 
 ```bash
 export DEPLOY_USER=root
 export DEPLOY_HOST=47.109.191.13
-export DEPLOY_PORT=22
+export DEPLOY_PORT=2222
 npm run deploy
 ```
 
-Defaults: `DEPLOY_USER=root`, `DEPLOY_HOST=47.109.191.13`, `DEPLOY_PORT=22`. Override with env vars above.
+Defaults: `DEPLOY_USER=root`, `DEPLOY_HOST=47.109.191.13`, `DEPLOY_PORT=2222`. Override with env vars above.
 
 What `npm run deploy` does:
 1. `npm run build` → regenerates `dist/`

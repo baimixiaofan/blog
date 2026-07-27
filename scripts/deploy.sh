@@ -4,7 +4,7 @@ set -e
 # Server config (defaults match this project)
 SERVER_USER="${DEPLOY_USER:-root}"
 SERVER_HOST="${DEPLOY_HOST:-47.109.191.13}"
-SERVER_PORT="${DEPLOY_PORT:-22}"
+SERVER_PORT="${DEPLOY_PORT:-2222}"
 SERVER_DIR="/var/www/baimeixiaofan"
 
 echo "Building..."
