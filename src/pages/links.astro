@@ -6,17 +6,16 @@ import Layout from '../components/Layout.astro';
     <h1>友链</h1>
 
     <h2>我的链接</h2>
-    <ul class="links">
+    <ul class="link-list">
       <li><a href="https://github.com/baimixiaofan" target="_blank" rel="noopener">GitHub: baimixiaofan</a></li>
     </ul>
 
     <h2>友情链接</h2>
-    <p class="empty">虚位以待。交换友链请联系 [邮箱 - 待填]。</p>
+    <p>虚位以待。交换友链请联系 [邮箱 - 待填]。</p>
   </div>
 </Layout>
 
 <style>
-  .links { list-style: none; padding: 0; }
-  .links li { padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
-  .empty { color: var(--text-dim); }
+  .link-list { list-style: none; padding: 0; }
+  .link-list li { padding: 0.4rem 0; border-bottom: 1px dashed var(--border); }
 </style>

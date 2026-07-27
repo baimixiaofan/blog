@@ -13,17 +13,16 @@ const posts = (await getCollection('blog'))
     {posts.length === 0 ? (
       <p class="empty">还没有文章。敬请期待。</p>
     ) : (
-      <div class="grid">
+      <ul class="post-list">
         {posts.map(p => (
           <BlogCard
             title={p.data.title}
             summary={p.data.summary}
             date={p.data.date}
             url={p.data.url}
-            cover={p.data.cover}
           />
         ))}
-      </div>
+      </ul>
     )}
   </div>
 </Layout>
@@ -31,5 +30,5 @@ const posts = (await getCollection('blog'))
 <style>
   .intro { color: var(--text-dim); margin-bottom: 2rem; }
   .empty { color: var(--text-dim); padding: 3rem 0; text-align: center; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+  .post-list { list-style: none; padding: 0; }
 </style>

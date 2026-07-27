@@ -19,12 +19,19 @@ function renderMd(md: string): string {
 ---
 <Layout title="关于 - 范升耀">
   <div class="container about-page">
-    <Avatar name="范升耀" size={100} />
+    <div class="profile">
+      <Avatar name="范升耀" size={88} />
+      <div>
+        <p class="meta">重庆大学 · 国家卓越工程师学院 · 明月科创实验班 2025 级</p>
+        <p class="meta">GitHub: <a href="https://github.com/baimixiaofan" target="_blank" rel="noopener">@baimixiaofan</a></p>
+      </div>
+    </div>
     <article set:html={renderMd(body)} />
   </div>
 </Layout>
 
 <style>
-  .about-page { padding-top: 1rem; }
-  .about-page :global(article) { margin-top: 1.5rem; }
+  .about-page { padding: 1rem 0 2rem; }
+  .profile { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+  .meta { color: var(--text-dim); font-size: 0.9rem; margin: 0.15rem 0; }
 </style>

@@ -1,24 +1,42 @@
 ---
 import Layout from '../components/Layout.astro';
-import Avatar from '../components/Avatar.astro';
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('projects'))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 5);
 ---
-<Layout title="范升耀 - 个人博客" description="范升耀的个人作品集与博客">
+<Layout title="范升耀" description="范升耀的个人博客 — 机器人、Robocon、跳跃机构、xbotpark 训练营">
   <div class="container home">
-    <Avatar name="范升耀" size={140} />
-    <h1>范升耀</h1>
-    <p class="tagline">[一句话 tagline - 待填]</p>
-    <ul class="links">
-      <li><a href="https://github.com/baimixiaofan" target="_blank" rel="noopener">GitHub</a></li>
-      <li><a href="/about">关于我</a></li>
-      <li><a href="/projects">项目作品</a></li>
-      <li><a href="/blog">博客</a></li>
+    <p class="tagline">机械工程本科生 / 重庆大学国家卓越工程师学院 / CQU Robocon 机械组 / 跳跃机器人爱好者</p>
+    <p class="intro">2026 Robocon 比赛 R1 抬升 R2 模块设计,腿式跳跃机器人研究,xbotpark 训练营经历,以及一些 web 作品。文章托管在 <a href="/blog">飞书云文档</a>。</p>
+
+    <h2>最近项目</h2>
+    <ul class="post-list">
+      {projects.map(p => (
+        <li>
+          <time>{p.data.date.toISOString().slice(0, 10)}</time>
+          &nbsp;
+          <a href={`/projects/${p.slug}`}>{p.data.title}</a>
+          {p.data.tags.length > 0 && <span class="tags"> · {p.data.tags.join(' / ')}</span>}
+        </li>
+      ))}
     </ul>
+
+    <h2>关于我</h2>
+    <p>重庆大学国家卓越工程师学院明月科创实验班 2025 级,痴迷于把脑子里的三维模型变成能转能动的实物。详细经历见 <a href="/about">关于页</a>。</p>
+
+    <h2>联系我</h2>
+    <p>GitHub: <a href="https://github.com/baimixiaofan" target="_blank" rel="noopener">@baimixiaofan</a> · <a href="/links">友链</a></p>
   </div>
 </Layout>
 
 <style>
-  .home { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 4rem; }
-  .home h1 { margin-top: 1.5rem; font-size: 2.5rem; }
-  .tagline { color: var(--text-dim); margin: 0.5rem 0 2rem; font-size: 1.1rem; }
-  .links { list-style: none; padding: 0; display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+  .home { padding: 1rem 0 2rem; }
+  .tagline { font-size: 1.05rem; color: var(--text); margin-bottom: 0.5rem; }
+  .intro { color: var(--text-dim); margin-bottom: 2rem; }
+  .post-list { list-style: none; padding: 0; }
+  .post-list li { padding: 0.4rem 0; border-bottom: 1px dashed var(--border); }
+  .post-list time { color: var(--text-mute); font-family: var(--font-mono); font-size: 0.9em; }
+  .post-list .tags { color: var(--text-mute); font-size: 0.9em; }
 </style>
