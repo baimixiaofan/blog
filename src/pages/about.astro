@@ -1,0 +1,21 @@
+---
+import Layout from '../components/Layout.astro';
+import { readFile } from 'node:fs/promises';
+
+const raw = await readFile('src/content/about/about.md', 'utf-8');
+const body = raw.replace(/^---[\s\S]*?---\n/, '');
+
+function renderMd(md: string): string {
+  return md
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hu])/gm, '<p>');
+}
+---
+<Layout title="关于 - 范升耀">
+  <article set:html={renderMd(body)} />
+</Layout>
