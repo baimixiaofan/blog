@@ -12,9 +12,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "sync:feishu": "node scripts/sync-feishu.mjs",
+    "sync:feishu": "node --env-file=.env scripts/sync-feishu.mjs",
     "deploy": "astro build && bash scripts/deploy.sh",
-    "deploy:sync": "node scripts/sync-feishu.mjs && astro build && bash scripts/deploy.sh"
+    "deploy:sync": "npm run sync:feishu && astro build && bash scripts/deploy.sh"
   },
   "keywords": [],
   "author": "",
