@@ -1,8 +1,24 @@
 ---
 import Layout from '../components/Layout.astro';
+import Avatar from '../components/Avatar.astro';
 ---
-<Layout title="范升耀 - 个人博客">
-  <div class="container">
+<Layout title="范升耀 - 个人博客" description="范升耀的个人作品集与博客">
+  <div class="container home">
+    <Avatar name="范升耀" size={140} />
     <h1>范升耀</h1>
+    <p class="tagline">[一句话 tagline - 待填]</p>
+    <ul class="links">
+      <li><a href="https://github.com/baimixiaofan" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="/about">关于我</a></li>
+      <li><a href="/projects">项目作品</a></li>
+      <li><a href="/blog">博客</a></li>
+    </ul>
   </div>
 </Layout>
+
+<style>
+  .home { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 4rem; }
+  .home h1 { margin-top: 1.5rem; font-size: 2.5rem; }
+  .tagline { color: var(--text-dim); margin: 0.5rem 0 2rem; font-size: 1.1rem; }
+  .links { list-style: none; padding: 0; display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+</style>
