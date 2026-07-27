@@ -4,22 +4,85 @@ interface Props {
   summary: string;
   date: Date;
   url: string;
+  cover?: string;
 }
-const { title, summary, date, url } = Astro.props;
+const { title, summary, date, url, cover } = Astro.props;
 const dateStr = date.toISOString().slice(0, 10);
 const isExternal = url.startsWith('http');
+const host = isExternal ? new URL(url).host : '';
 ---
-<li class="post-item">
-  <time>{dateStr}</time>
-  &nbsp;
-  <a href={url} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener' : undefined} class="title">{title} {isExternal && <span class="ext">↗</span>}</a>
-  <p class="summary">{summary}</p>
-</li>
+<a href={url} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener' : undefined} class="doc-card">
+  {cover && <div class="cover"><img src={cover} alt="" loading="lazy" /></div>}
+  <div class="body">
+    <div class="meta">
+      <span class="badge">📄 飞书云文档</span>
+      <time>{dateStr}</time>
+    </div>
+    <h3 class="title">{title} {isExternal && <span class="ext" aria-hidden="true">↗</span>}</h3>
+    {summary && <p class="summary">{summary}</p>}
+    {host && <p class="host">来源 · {host}</p>}
+  </div>
+</a>
 
 <style>
-  .post-item { padding: 0.6rem 0; border-bottom: 1px dashed var(--border); list-style: none; }
-  .post-item time { color: var(--text-mute); font-family: var(--font-mono); font-size: 0.9em; }
-  .post-item .title { font-size: 1.05rem; font-weight: 500; }
-  .post-item .ext { color: var(--text-mute); font-size: 0.85em; }
-  .post-item .summary { color: var(--text-dim); font-size: 0.9rem; margin: 0.3rem 0 0; }
+  .doc-card {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--text);
+    margin: 0 0 1rem;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+  .doc-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 12px rgba(210, 105, 17, 0.08);
+    text-decoration: none;
+    transform: translateY(-1px);
+  }
+  .cover { width: 100%; height: 160px; overflow: hidden; background: var(--bg-elev); }
+  .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .body { padding: 1rem 1.25rem 1.1rem; }
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-mute);
+  }
+  .badge {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 0.1em 0.6em;
+    border-radius: 999px;
+    font-size: 0.75rem;
+  }
+  .doc-card:hover .badge {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  time { font-family: var(--font-mono); font-size: 0.8rem; }
+  .title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0.1rem 0 0.5rem;
+    color: var(--text);
+  }
+  .ext { color: var(--text-mute); font-size: 0.85em; font-weight: 400; }
+  .summary {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 0.5rem;
+  }
+  .host {
+    color: var(--text-mute);
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    margin: 0;
+  }
 </style>

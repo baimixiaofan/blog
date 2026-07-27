@@ -9,26 +9,27 @@ const posts = (await getCollection('blog'))
 <Layout title="博客 - 范升耀" description="文章列表 (内容托管于飞书云文档)">
   <div class="container">
     <h1>博客</h1>
-    <p class="intro">文章内容托管在飞书云文档,点击跳转到原文。</p>
+    <p class="intro">文章托管在 <strong>飞书云文档</strong>,点击卡片跳转到原文阅读。</p>
     {posts.length === 0 ? (
       <p class="empty">还没有文章。敬请期待。</p>
     ) : (
-      <ul class="post-list">
+      <div class="doc-list">
         {posts.map(p => (
           <BlogCard
             title={p.data.title}
             summary={p.data.summary}
             date={p.data.date}
             url={p.data.url}
+            cover={p.data.cover}
           />
         ))}
-      </ul>
+      </div>
     )}
   </div>
 </Layout>
 
 <style>
-  .intro { color: var(--text-dim); margin-bottom: 2rem; }
+  .intro { color: var(--text-dim); margin-bottom: 1.5rem; }
   .empty { color: var(--text-dim); padding: 3rem 0; text-align: center; }
-  .post-list { list-style: none; padding: 0; }
+  .doc-list { margin-top: 0.5rem; }
 </style>
