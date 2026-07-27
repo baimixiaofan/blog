@@ -1,5 +1,6 @@
 ---
 import Layout from '../components/Layout.astro';
+import Avatar from '../components/Avatar.astro';
 import { readFile } from 'node:fs/promises';
 
 const raw = await readFile('src/content/about/about.md', 'utf-8');
@@ -17,5 +18,13 @@ function renderMd(md: string): string {
 }
 ---
 <Layout title="关于 - 范升耀">
-  <article set:html={renderMd(body)} />
+  <div class="container about-page">
+    <Avatar name="范升耀" size={100} />
+    <article set:html={renderMd(body)} />
+  </div>
 </Layout>
+
+<style>
+  .about-page { padding-top: 1rem; }
+  .about-page :global(article) { margin-top: 1.5rem; }
+</style>
