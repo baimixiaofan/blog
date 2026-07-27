@@ -1,0 +1,31 @@
+---
+import Layout from '../../components/Layout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('projects'))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+<Layout title="项目 - 范升耀">
+  <div class="container">
+    <h1>项目</h1>
+    <p class="intro">跳跃机器人、xbotpark 训练营、Web 作品、Robocon 机械设计</p>
+    <div class="grid">
+      {projects.map(p => (
+        <ProjectCard
+          title={p.data.title}
+          summary={p.data.summary}
+          date={p.data.date}
+          tags={p.data.tags}
+          href={`/projects/${p.slug}`}
+          cover={p.data.cover}
+        />
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .intro { color: var(--text-dim); margin-bottom: 2rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+</style>
