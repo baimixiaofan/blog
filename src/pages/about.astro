@@ -8,13 +8,23 @@ const body = raw.replace(/^---[\s\S]*?---\n/, '');
 
 function renderMd(md: string): string {
   return md
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    .replace(/<((?:https?:\/\/|mailto:)[^>]+)>/g, '<a href="$1">$1</a>')
+    .replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?![^<]*>)/g, '<a href="mailto:$1">$1</a>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^- (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[hu])/gm, '<p>');
+    .split(/\n\n+/)
+    .map(block => {
+      const trimmed = block.trim();
+      if (!trimmed) return '';
+      if (/^<(h\d|ul|ol|blockquote|hr|pre)/.test(trimmed)) return trimmed;
+      const withBreaks = trimmed.replace(/\n/g, '<br>');
+      return `<p>${withBreaks}</p>`;
+    })
+    .join('\n');
 }
 ---
 <Layout title="关于 - 范升耀">
