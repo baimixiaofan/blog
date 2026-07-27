@@ -1,0 +1,35 @@
+---
+import Layout from '../../components/Layout.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog'))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+<Layout title="博客 - 范升耀" description="文章列表 (内容托管于飞书云文档)">
+  <div class="container">
+    <h1>博客</h1>
+    <p class="intro">文章内容托管在飞书云文档,点击跳转到原文。</p>
+    {posts.length === 0 ? (
+      <p class="empty">还没有文章。敬请期待。</p>
+    ) : (
+      <div class="grid">
+        {posts.map(p => (
+          <BlogCard
+            title={p.data.title}
+            summary={p.data.summary}
+            date={p.data.date}
+            url={p.data.url}
+            cover={p.data.cover}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+</Layout>
+
+<style>
+  .intro { color: var(--text-dim); margin-bottom: 2rem; }
+  .empty { color: var(--text-dim); padding: 3rem 0; text-align: center; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+</style>
