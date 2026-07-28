@@ -14,7 +14,7 @@ const { project } = Astro.props;
 const { Content } = await project.render();
 const dateStr = project.data.date.toISOString().slice(0, 10);
 ---
-<Layout title={`${project.data.title} - 范升耀`} description={project.data.summary}>
+<Layout title={`${project.data.title} - 白米饭的个人博客`} description={project.data.summary}>
   <article class="container project">
     <p class="back"><a href="/projects">← 项目列表</a></p>
     <h1>{project.data.title}</h1>
