@@ -2,7 +2,7 @@
 title: "cs229"
 summary: "飞书云文档 · 同步于 2026-07-27"
 date: 2026-07-27
-url: https://qcnf0kr4rlak.feishu.cn/wiki/TunHwf5kDiUTs4k6XXNcweRYnUb
+url: https://feishu.cn/wiki/TunHwf5kDiUTs4k6XXNcweRYnUb
 ---
 
 cs229

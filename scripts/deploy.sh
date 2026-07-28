@@ -10,6 +10,9 @@ SERVER_DIR="/var/www/baimeixiaofan"
 echo "Building..."
 npm run build
 
+echo "Cleaning $SERVER_USER@$SERVER_HOST:$SERVER_DIR ..."
+ssh -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "find $SERVER_DIR -mindepth 1 ! -path '$SERVER_DIR/.well-known*' -delete"
+
 echo "Deploying to $SERVER_USER@$SERVER_HOST:$SERVER_DIR ..."
 scp -P "$SERVER_PORT" -r dist/. "$SERVER_USER@$SERVER_HOST:$SERVER_DIR/"
 

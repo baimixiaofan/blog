@@ -21,7 +21,7 @@
 - 三维建模 / 制造工艺
 - 把数学和物理用进实物
 
-## 链接
+## 联系我
 
 - GitHub: [baimixiaofan](https://github.com/baimixiaofan)
 - 邮箱: baimeixiaofan@gmail.com
