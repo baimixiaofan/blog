@@ -6,7 +6,7 @@ import { getCollection } from 'astro:content';
 const posts = (await getCollection('blog'))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
-<Layout title="博客 - 白米饭的个人博客" description="文章列表 (内容托管于飞书云文档)">
+<Layout title="博客 - 范升耀" description="文章列表 (内容托管于飞书云文档)">
   <div class="container">
     <h1>博客</h1>
     <p class="intro">文章托管在 <strong>飞书云文档</strong>,点击卡片跳转到原文阅读。</p>
