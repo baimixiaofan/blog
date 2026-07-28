@@ -241,46 +241,51 @@ git commit -m "feat: add docx extraction script (raw output gitignored)"
 
 ---
 
-### Task 4: Build About content page
+### Task 4: Build About content page (NARRATIVE STYLE - revised after Task 3)
 
 **Files:**
 - Create: `D:\blog\src\content\about\about.md`
 - Create: `D:\blog\src\pages\about.astro`
 
-- [ ] **Step 1: Write About content (Markdown)**
+> **Revision note (post-Task 3):** The source document is a Robocon 2026 mechanical team innovation practice report, not a traditional CV-style resume. No contact info, formal skills list, or multi-project history is present. The About page is therefore rewritten as a **narrative-style** page focused on: who the author is, what they're working on, where they study, and links out. Sections of the original spec that depended on a CV-style docx (skills list, contact, multi-experience timeline) are replaced with links to the projects and the GitHub profile.
 
-Based on extracted resume, create `D:\blog\src\content\about\about.md`:
+- [ ] **Step 1: Write About content (Markdown narrative)**
+
+Create `D:\blog\src\content\about\about.md`:
+
 ```markdown
----
-title: 关于我
----
-
 # 范升耀
 
-[一句话 tagline - 来自简历]
+机械工程本科生,重庆大学国家卓越工程师学院明月科创实验班 2025 级,痴迷于把脑子里的三维模型变成能转能动的实物。
 
-## 教育背景
+## 现在在做的事
 
-- **学校** - 专业 - 时间
+2025–2026 学年加入了 CQU Robocon 战队机械组,全程参与 2026 年全国大学生机器人大赛(ROBOCON)的备赛工作。三个月的实践里,我从拧螺丝的装配学徒,成长为能独立完成 R1 机器人抬升 R2 模块方案设计与出图的队员。详细经历看 [创新实践报告](https://baimeixiaofan.xyz/projects/robocon) 摘录。
 
-## 技能栈
+机器人之外,我还在做**腿式跳跃机器人**的仿生设计与仿真研究,关注储能–释放–稳定着地的完整动力学闭环。
 
-- 语言: Python, C++, ...
-- 框架: PyTorch, ROS, ...
-- 工具: ...
+## 教育
 
-## 项目经历
+- **重庆大学** · 国家卓越工程师学院 明月科创实验班 · 2025 级 · 学号 20251923
 
-### 项目一
-时间 - 角色 - 一句话描述
+## 关注的方向
 
-### 项目二
-...
+- 机器人结构设计与动力学仿真
+- 仿生跳跃机构
+- 三维建模 / 制造工艺
+- 把数学和物理用进实物
+
+## 链接
+
+- GitHub: [baimixiaofan](https://github.com/baimixiaofan)
+- 邮箱: (待补)
+
+> 简历 / 详细项目见 [项目页](/projects) 与 [GitHub](https://github.com/baimixiaofan)。
 ```
 
-Fill in real content from `raw-resume.txt`.
+Fill in real values from `raw-resume.txt` where they apply. Note: Task 5 will create the `/projects/robocon` page; the link may need to be updated after that task. (Optional: link to `/projects` only and skip the deep link until Task 5 lands.)
 
-- [ ] **Step 2: Create about.astro (no Avatar yet — added in Task 8.5)**
+- [ ] **Step 2: Create about.astro (no Avatar yet — added in Task 8)**
 
 Create `D:\blog\src\pages\about.astro`:
 ```astro
@@ -309,16 +314,23 @@ function renderMd(md: string): string {
 
 - [ ] **Step 3: Verify in browser**
 
-Run: `cd D:\blog && npm run dev`
-Visit `http://127.0.0.1:4321/about`. Expected: Resume content renders.
+Start dev server in background, curl, kill (per Task 2 pattern):
+```bash
+"D:\Git\bin\bash.exe" -c "cd /d/blog && (npm run dev > /tmp/astro.log 2>&1 &) && sleep 4 && curl -s http://127.0.0.1:4321/about | grep -o '范升耀' | head -1 && pkill -f 'astro dev' 2>/dev/null; true"
+```
+Expected: "范升耀" appears in the rendered HTML.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 cd D:\blog
 git add src/content/about/about.md src/pages/about.astro
-git commit -m "feat: add About page from resume"
+git commit -m "feat: add About page (narrative style)"
 ```
+
+- [ ] **Step 5: Optional — ask the user to confirm the email**
+
+The placeholder `(待补)` in the email line should be filled in by the user. Flag this for the user to provide their actual email address; update the file and re-commit when provided.
 
 ---
 
@@ -328,7 +340,10 @@ git commit -m "feat: add About page from resume"
 - Create: `D:\blog\src\content\projects\jumping-robot.md`
 - Create: `D:\blog\src\content\projects\xbotpark.md`
 - Create: `D:\blog\src\content\projects\web-showcase.md`
+- Create: `D:\blog\src\content\projects\robocon.md`
 - Create: `D:\blog\src\content\config.ts`
+
+> **Revision note (post-Task 3):** A fourth project `robocon.md` is added, based on the actual content of `D:\个人简历\范升耀_创新实践报告_v3.docx` (2026 Robocon mechanical team innovation practice). The about page links to `/projects/robocon`.
 
 - [ ] **Step 1: Create content schema**
 
@@ -361,7 +376,58 @@ const blog = defineCollection({
 export const collections = { projects, blog };
 ```
 
-- [ ] **Step 2: Write jumping-robot.md**
+- [ ] **Step 2: Write robocon.md (NEW — primary project, content from extracted docx)**
+
+Create `D:\blog\src\content\projects\robocon.md`:
+```markdown
+---
+title: 2026 Robocon 机械组 — R1 抬升 R2 模块设计
+summary: 在 CQU Robocon 战队机械组的三个月创新实践:从装配学徒到模块设计者
+date: 2026-06-13
+tags: [Robocon, 机械设计, 三维建模, 机器人]
+---
+
+## 背景
+
+2025–2026 学年加入 CQU Robocon 战队机械组,参与 2026 年全国大学生机器人大赛(ROBOCON)备赛。Robocon 是一项集机械设计、电控、计算机视觉于一体的综合性机器人竞赛,机械组负责结构设计、三维建模、零件加工、装配与调试维护。
+
+## 三阶段成长
+
+1. **第一阶段(3 月):基础装配与加工入门** — 参与 R1 机器人底盘与机械臂装配,接触零件外协加工流程(标注材料、表面处理、关键公差、交期)
+2. **第二阶段(4 月):方案设计与跨组协作** — 接手 R1 抬升 R2 模块(抬升约 20 kg 的 R2 至指定高度),系统对比丝杆 / 同步带 / 齿轮齿条三种传动方案,最终选定"同步带 + 直线导轨"
+3. **第三阶段(5 月):设计落地与整机装配** — 用 Fusion 360 / SolidWorks 完成三维建模与工程图,发加工,实物装配中解决结构干涉、电机出线孔冲突、滑块行程不匹配等问题,完成 R1 整机迭代
+
+## 核心工程计算:同步轮扭矩选型
+
+抬升 20 kg R2,四同步轮均分,半径 15 mm:
+
+- 单轮负载: 5 kg × 9.8 = 49 N
+- 单轮扭矩: 49 × 0.015 = 0.735 N·m
+- 单轴扭矩: 2 × 0.735 = 1.5 N·m
+- 取安全系数 S=2 → 需求 3.0 N·m
+- 对照 DJI M3508(额定 3 N·m,469 rpm),完全满足,选定
+
+## 知识体系积累
+
+- **材料与结构件**:铝管/碳管选用、碳板/玻纤板/亚克力板工艺、3D 打印件内嵌螺纹
+- **传动系统**:同步带选型全流程、涨紧套原理、丝杆/齿轮参数
+- **轴承**:深沟球/角接触/四点接触/圆柱滚子/推力球/直线/交叉滚子等 7 类
+- **动力元件**:DJI M3508/M2006/6020 电机选型、气缸系统
+
+## 反思与教训
+
+- 图纸细节遗漏 → 建立"导出前逐层检查 + 导出后 3D 预览"自检机制
+- 跨组沟通偏差 → 关键接口变更必须线下当面确认
+- 早期舵轮设计存在轴承无轴向固定、涨紧套滥用、电机固定不可靠三处缺陷,通过"批判性回顾旧设计"持续改进
+
+## 产出
+
+- R1 机器人底盘 + R1 抬升 R2 模块三维模型与工程图
+- 整机装配流程文档
+- 一套完整的工程闭环经验:需求分析 → 工程计算 → 方案设计 → 三维建模 → 工程出图 → 零件加工 → 实物装配 → 功能测试 → 迭代优化
+```
+
+- [ ] **Step 3: Write jumping-robot.md**
 
 Create `D:\blog\src\content\projects\jumping-robot.md`:
 ```markdown
@@ -370,12 +436,11 @@ title: 腿式跳跃机器人研究
 summary: 基于弹簧储能的腿式跳跃机器人设计、仿真与样机制作
 date: 2026-03-22
 tags: [机器人, 机械设计, 仿真]
-cover: /images/projects/jumping-robot-cover.jpg
 ---
 
 ## 项目背景
 
-[来自 D:\个人简历\自然科学\ 设计文档]
+[来自 D:\个人简历\自然科学\ 设计文档 — 实际内容由 implementer 从文件夹材料中提取]
 
 ## 设计思路
 
@@ -392,9 +457,7 @@ cover: /images/projects/jumping-robot-cover.jpg
 - Ribak_2013_Bioinspir._Biomim._8_036004.pdf
 ```
 
-Fill in from `D:\个人简历\自然科学\` content.
-
-- [ ] **Step 3: Write xbotpark.md**
+- [ ] **Step 4: Write xbotpark.md**
 
 Create `D:\blog\src\content\projects\xbotpark.md`:
 ```markdown
@@ -407,7 +470,7 @@ tags: [xbotpark, 机器人, 训练营]
 
 ## 训练营简介
 
-[来自 D:\个人简历\阿里云训练营\范升耀-阿里训练营运营.docx]
+[来自 D:\个人简历\阿里云训练营\范升耀-阿里训练营运营.docx — implementer 从文件提取内容]
 
 ## 角色与产出
 
@@ -416,9 +479,7 @@ tags: [xbotpark, 机器人, 训练营]
 - 学到的东西
 ```
 
-Fill in from the docx.
-
-- [ ] **Step 4: Write web-showcase.md**
+- [ ] **Step 5: Write web-showcase.md**
 
 Create `D:\blog\src\content\projects\web-showcase.md`:
 ```markdown
@@ -439,7 +500,7 @@ cover: /images/projects/web-cover.png
 截图: 小程序展示1.png
 ```
 
-- [ ] **Step 5: Copy project images to public**
+- [ ] **Step 6: Copy project images to public**
 
 ```bash
 cd D:\blog
@@ -451,13 +512,13 @@ copy "D:\个人简历\web产品\小程序展示2.png" public\images\projects\min
 
 (Git Bash 用户也可以用 `cp` 替代 `copy`。)
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 cd D:\blog
 git add src/content/
 git add public/images/projects/
-git commit -m "feat: add project content (jumping robot, xbotpark, web)"
+git commit -m "feat: add project content (robocon, jumping robot, xbotpark, web)"
 ```
 
 ---

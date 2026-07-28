@@ -1,42 +1,47 @@
 ---
 import Layout from '../components/Layout.astro';
-import { getCollection } from 'astro:content';
+import Avatar from '../components/Avatar.astro';
+import { readFile } from 'node:fs/promises';
 
-const projects = (await getCollection('projects'))
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-  .slice(0, 5);
+const raw = await readFile('src/content/about/about.md', 'utf-8');
+const body = raw.replace(/^---[\s\S]*?---\n/, '');
+
+function renderMd(md: string): string {
+  return md
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    .replace(/<((?:https?:\/\/|mailto:)[^>]+)>/g, '<a href="$1">$1</a>')
+    .replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?![^<]*>)/g, '<a href="mailto:$1">$1</a>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    .split(/\n\n+/)
+    .map(block => {
+      const trimmed = block.trim();
+      if (!trimmed) return '';
+      if (/^<(h\d|ul|ol|blockquote|hr|pre)/.test(trimmed)) return trimmed;
+      const withBreaks = trimmed.replace(/\n/g, '<br>');
+      return `<p>${withBreaks}</p>`;
+    })
+    .join('\n');
+}
 ---
-<Layout title="范升耀" description="范升耀的个人博客 — 机器人、Robocon、跳跃机构、xbotpark 训练营">
-  <div class="container home">
-    <p class="tagline">机械工程本科生 / 重庆大学国家卓越工程师学院 / CQU Robocon 机械组 / 跳跃机器人爱好者</p>
-    <p class="intro">2026 Robocon 比赛 R1 抬升 R2 模块设计,腿式跳跃机器人研究,xbotpark 训练营经历,以及一些 web 作品。文章托管在 <a href="/blog">飞书云文档</a>。</p>
-
-    <h2>最近项目</h2>
-    <ul class="post-list">
-      {projects.map(p => (
-        <li>
-          <time>{p.data.date.toISOString().slice(0, 10)}</time>
-          &nbsp;
-          <a href={`/projects/${p.slug}`}>{p.data.title}</a>
-          {p.data.tags.length > 0 && <span class="tags"> · {p.data.tags.join(' / ')}</span>}
-        </li>
-      ))}
-    </ul>
-
-    <h2>关于我</h2>
-    <p>重庆大学国家卓越工程师学院明月科创实验班 2025 级,痴迷于把脑子里的三维模型变成能转能动的实物。详细经历见 <a href="/about">关于页</a>。</p>
-
-    <h2>联系我</h2>
-    <p>GitHub: <a href="https://github.com/baimixiaofan" target="_blank" rel="noopener">@baimixiaofan</a> · <a href="/links">友链</a></p>
+<Layout title="范升耀" description="范升耀 - 重庆大学 / 机器人 / Robocon / 跳跃机器人">
+  <div class="container about-page">
+    <div class="profile">
+      <Avatar name="范升耀" size={88} />
+      <div>
+        <p class="meta">重庆大学 · 国家卓越工程师学院 · 明月科创实验班 2025 级</p>
+        <p class="meta">GitHub: <a href="https://github.com/baimixiaofan" target="_blank" rel="noopener">@baimixiaofan</a></p>
+      </div>
+    </div>
+    <article set:html={renderMd(body)} />
   </div>
 </Layout>
 
 <style>
-  .home { padding: 1rem 0 2rem; }
-  .tagline { font-size: 1.05rem; color: var(--text); margin-bottom: 0.5rem; }
-  .intro { color: var(--text-dim); margin-bottom: 2rem; }
-  .post-list { list-style: none; padding: 0; }
-  .post-list li { padding: 0.4rem 0; border-bottom: 1px dashed var(--border); }
-  .post-list time { color: var(--text-mute); font-family: var(--font-mono); font-size: 0.9em; }
-  .post-list .tags { color: var(--text-mute); font-size: 0.9em; }
+  .about-page { padding: 1rem 0 2rem; }
+  .profile { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+  .meta { color: var(--text-dim); font-size: 0.9rem; margin: 0.15rem 0; }
 </style>
