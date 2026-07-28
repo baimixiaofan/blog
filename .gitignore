@@ -7,3 +7,4 @@ dist/
 Thumbs.db
 *.log
 src/content/about/raw-resume.txt
+src/content/blog/feishu-*.md
