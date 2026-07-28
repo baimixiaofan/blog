@@ -6,7 +6,7 @@ import { getCollection } from 'astro:content';
 const projects = (await getCollection('projects'))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
-<Layout title="项目 - 范升耀" description="项目作品集">
+<Layout title="项目 - 白米饭的个人博客" description="项目作品集">
   <div class="container">
     <h1>项目</h1>
     <p class="intro">跳跃机器人、xbotpark 训练营、Web 作品、Robocon 机械设计。</p>
