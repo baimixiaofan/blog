@@ -10,9 +10,12 @@ LOG=/var/log/blog-sync.log
 
 cd "$BLOG_DIR"
 
-# 1. 硬重置到远程(丢弃本地所有未提交修改,保证与 GitHub 一致)
-git fetch origin >> "$LOG" 2>&1 || true
-git reset --hard origin/main
+# 1. 尝试拉最新代码(连不上 GitHub 就继续,不影响同步)
+if git fetch origin --depth 1 >> "$LOG" 2>&1; then
+  git reset --hard origin/main
+else
+  echo "$(date -Iseconds) git fetch failed, using current code" >> "$LOG"
+fi
 
 # 2. 安装可能变化的依赖 (只安装必要的)
 npm install --no-audit --no-fund >> "$LOG" 2>&1
