@@ -32,22 +32,27 @@ if (!APP_ID || !APP_SECRET) {
   console.error('缺少 FEISHU_APP_ID 或 FEISHU_APP_SECRET');
   process.exit(1);
 }
-if (!WIKI_URL && DOC_URLS.length === 0) {
-  console.error('需要 FEISHU_WIKI_URL (整库模式) 或 FEISHU_DOC_URLS (URL 列表模式)');
-  process.exit(1);
+if (DOC_URLS.length === 0 && !WIKI_URL) {
+  console.log('无 WIKI_URL/DOC_URLS,自动发现所有可访问的知识库');
 }
 
 async function api(path, init = {}, token) {
   const headers = { ...init.headers };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${BASE}${path}`, { ...init, headers });
-  const data = await res.json();
-  if (data.code !== 0) {
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    const res = await fetch(`${BASE}${path}`, { ...init, headers });
+    const data = await res.json();
+    if (data.code === 0) return data.data;
+    if (data.code === 99991400 && attempt < 5) {
+      const wait = attempt * 1000;
+      console.log(`   ⏱ 限流,等待 ${wait}ms 后重试 (${attempt}/5) ...`);
+      await new Promise(r => setTimeout(r, wait));
+      continue;
+    }
     const e = new Error(`Feishu API error ${data.code}: ${data.msg} (path: ${path})`);
     e.code = data.code;
     throw e;
   }
-  return data.data;
 }
 
 async function getTenantToken() {
@@ -66,6 +71,11 @@ async function getTenantToken() {
 function extractTokenFromUrl(url) {
   const m = url.match(/\/(wiki|docx|docs)\/([A-Za-z0-9_-]+)/);
   return m ? m[2] : null;
+}
+
+async function listAllSpaces(t) {
+  const data = await api('/wiki/v2/spaces?page_size=50', {}, t);
+  return data.items || [];
 }
 
 async function resolveSpaceId(token, t) {
@@ -126,8 +136,8 @@ async function cleanOldFeishuFiles() {
   }
 }
 
-async function writeDoc({ title, content, sourceUrl }) {
-  const slug = sanitizeSlug(title);
+async function writeDoc({ title, content, sourceUrl, spacePrefix }) {
+  const slug = spacePrefix ? `${sanitizeSlug(spacePrefix)}-${sanitizeSlug(title)}` : sanitizeSlug(title);
   const date = new Date().toISOString().slice(0, 10);
   const fm = [
     '---',
@@ -143,6 +153,28 @@ async function writeDoc({ title, content, sourceUrl }) {
   const outPath = join(OUT_DIR, `feishu-${slug}.md`);
   await writeFile(outPath, fm, 'utf-8');
   console.log(`   ✓ ${title}  →  ${outPath}`);
+}
+
+async function syncSpace(spaceId, spaceName, token) {
+  console.log(`\n  [${spaceName}] 列出所有节点 ...`);
+  const nodes = await listAllNodes(spaceId, token);
+  console.log(`   共 ${nodes.length} 个节点`);
+  const docs = nodes.filter(n => n.obj_type === 'docx' || n.obj_type === 'doc');
+  console.log(`   其中 ${docs.length} 个文档`);
+  for (const doc of docs) {
+    const docTitle = doc.title || 'untitled';
+    if (EXCLUDE_TITLES.some(t => docTitle.includes(t))) {
+      console.log(`   - 跳过 "${docTitle}" (已排除)`);
+      continue;
+    }
+    try {
+      const content = await getDocContent(token, doc.obj_token);
+      const url = `https://feishu.cn/wiki/${doc.node_token}`;
+      await writeDoc({ title: docTitle, content, sourceUrl: url, spacePrefix: spaceName });
+    } catch (err) {
+      console.warn(`   ✗ 跳过 ${doc.title || doc.node_token}: ${err.message}`);
+    }
+  }
 }
 
 async function main() {
@@ -177,38 +209,27 @@ async function main() {
       }
       await writeDoc({ title, content, sourceUrl: url });
     }
-  } else {
+  } else if (WIKI_URL) {
     console.log('3. 整库模式:从 URL 解析 token ...');
     const urlToken = extractTokenFromUrl(WIKI_URL);
     if (!urlToken) {
       throw new Error(`无法从 WIKI_URL 提取 token: ${WIKI_URL}`);
     }
-    console.log(`   token: ${urlToken}`);
-
-    console.log('4. 用 get_node 解析出 space_id ...');
     const { spaceId, title: rootTitle } = await resolveSpaceId(urlToken, token);
     console.log(`   space_id: ${spaceId}  根节点: ${rootTitle}`);
-
-    console.log('5. 列出所有节点 ...');
-    const nodes = await listAllNodes(spaceId, token);
-    console.log(`   共 ${nodes.length} 个节点`);
-
-    const docs = nodes.filter(n => n.obj_type === 'docx' || n.obj_type === 'doc');
-    console.log(`   其中 ${docs.length} 个文档`);
-
-    console.log('6. 拉取并写入每个文档 ...');
-    for (const doc of docs) {
-      const docTitle = doc.title || 'untitled';
-      if (EXCLUDE_TITLES.some(t => docTitle.includes(t))) {
-        console.log(`   - 跳过 "${docTitle}" (已排除)`);
-        continue;
-      }
+    await syncSpace(spaceId, rootTitle, token);
+  } else {
+    console.log('3. 自动发现所有可访问的知识库 ...');
+    const spaces = await listAllSpaces(token);
+    console.log(`   共 ${spaces.length} 个知识库`);
+    for (const [i, s] of spaces.entries()) {
+      const name = s.name || s.space_id;
+      console.log(`\n  [${name}] (${s.space_id})${i > 0 ? ' (等待 1s 避免限流)' : ''}`);
+      if (i > 0) await new Promise(r => setTimeout(r, 1000));
       try {
-        const content = await getDocContent(token, doc.obj_token);
-        const url = `https://feishu.cn/wiki/${doc.node_token}`;
-        await writeDoc({ title: docTitle, content, sourceUrl: url });
+        await syncSpace(s.space_id, name, token);
       } catch (err) {
-        console.warn(`   ✗ 跳过 ${doc.title || doc.node_token}: ${err.message}`);
+        console.warn(`   ✗ 跳过知识库 ${name}: ${err.message}`);
       }
     }
   }
