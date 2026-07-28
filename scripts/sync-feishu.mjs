@@ -20,6 +20,11 @@ const DOC_URLS = (process.env.FEISHU_DOC_URLS || '')
   .map(s => s.trim())
   .filter(Boolean);
 
+const EXCLUDE_TITLES = (process.env.FEISHU_EXCLUDE_TITLES || '')
+  .split(/[,，、]/)
+  .map(s => s.trim())
+  .filter(Boolean);
+
 const BASE = 'https://open.feishu.cn/open-apis';
 const OUT_DIR = 'src/content/blog';
 
@@ -166,6 +171,10 @@ async function main() {
       const content = await getDocContent(token, objToken);
       const titleMatch = content.match(/^#\s+(.+)$/m);
       const title = titleMatch ? titleMatch[1].trim() : wikiTitle;
+      if (EXCLUDE_TITLES.some(t => title.includes(t))) {
+        console.log(`   - 跳过 "${title}" (已排除)`);
+        continue;
+      }
       await writeDoc({ title, content, sourceUrl: url });
     }
   } else {
@@ -189,10 +198,15 @@ async function main() {
 
     console.log('6. 拉取并写入每个文档 ...');
     for (const doc of docs) {
+      const docTitle = doc.title || 'untitled';
+      if (EXCLUDE_TITLES.some(t => docTitle.includes(t))) {
+        console.log(`   - 跳过 "${docTitle}" (已排除)`);
+        continue;
+      }
       try {
         const content = await getDocContent(token, doc.obj_token);
         const url = `https://feishu.cn/wiki/${doc.node_token}`;
-        await writeDoc({ title: doc.title || 'untitled', content, sourceUrl: url });
+        await writeDoc({ title: docTitle, content, sourceUrl: url });
       } catch (err) {
         console.warn(`   ✗ 跳过 ${doc.title || doc.node_token}: ${err.message}`);
       }
