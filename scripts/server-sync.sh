@@ -40,7 +40,12 @@ npm run build >> "$LOG" 2>&1 || {
   exit 1
 }
 
-# 5. 部署到 nginx (清理旧文件,保留 .well-known 给 certbot)
+# 5. 更新 nginx 配置
+cp scripts/nginx-config /etc/nginx/sites-available/baimeixiaofan
+cp /etc/nginx/sites-available/baimeixiaofan /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx || true
+
+# 6. 部署到 nginx (清理旧文件,保留 .well-known 给 certbot)
 find "$WEB_DIR" -mindepth 1 ! -path "$WEB_DIR/.well-known*" -delete
 cp -r dist/. "$WEB_DIR/"
 
