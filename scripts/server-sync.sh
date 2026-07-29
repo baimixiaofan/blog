@@ -19,7 +19,7 @@ cd "$BLOG_DIR"
 
 # 1. 尝试拉最新代码(git 卡超过 60s 就跳过)
 echo "$(date -Iseconds) 开始同步" >> "$LOG"
-if timeout 60 git fetch --depth 1 >> "$LOG" 2>&1; then
+if timeout 180 git fetch --depth 1 >> "$LOG" 2>&1; then
   git reset --hard origin/main
 else
   echo "$(date -Iseconds) git fetch 失败或超时,用当前代码继续" >> "$LOG"
