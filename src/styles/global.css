@@ -28,6 +28,9 @@ html, body {
 
 body { position: relative; min-height: 100vh; }
 
+/* Let fixed negative-z-index layers (e.g. milk dragon watermark) show above the root background. */
+body { background: transparent; }
+
 a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
