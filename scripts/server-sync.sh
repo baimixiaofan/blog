@@ -17,12 +17,21 @@ fi
 
 cd "$BLOG_DIR"
 
-# 1. 尝试拉最新代码(git 卡超过 60s 就跳过)
+# 1. 尝试拉最新代码(最多 3 次,GitHub 访问偶发 TLS 中断;全失败则用当前代码继续)
 echo "$(date -Iseconds) 开始同步" >> "$LOG"
-if timeout 180 git fetch --depth 1 >> "$LOG" 2>&1; then
+fetch_ok=0
+for i in 1 2 3; do
+  if timeout 120 git fetch --depth 1 >> "$LOG" 2>&1; then
+    fetch_ok=1
+    break
+  fi
+  echo "$(date -Iseconds) git fetch 第 $i 次失败" >> "$LOG"
+  sleep 10
+done
+if [ "$fetch_ok" = 1 ]; then
   git reset --hard origin/main
 else
-  echo "$(date -Iseconds) git fetch 失败或超时,用当前代码继续" >> "$LOG"
+  echo "$(date -Iseconds) git fetch 全部失败,用当前代码继续" >> "$LOG"
 fi
 
 # 2. npm install (只安装必要的,失败也继续)
