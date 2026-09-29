@@ -26,11 +26,11 @@ if (otherIdx > -1) spaces.push(...spaces.splice(otherIdx, 1));
       <div class="space-list">
         {spaces.map(s => (
           <a href={`/blog/${s.slug}/`} class="space-card">
-            <div class="space-info">
+            <div class="space-head">
               <h2>{s.name}</h2>
-              <p>{s.posts.length} 篇文章 · 最近更新 {s.posts[0].data.date.toISOString().slice(0, 10)}</p>
+              <span class="arrow" aria-hidden="true">→</span>
             </div>
-            <span class="arrow" aria-hidden="true">→</span>
+            <p class="space-meta">{s.posts.length} 篇文章 · 最近更新 {s.posts[0].data.date.toISOString().slice(0, 10)}</p>
           </a>
         ))}
       </div>
@@ -44,7 +44,8 @@ if (otherIdx > -1) spaces.push(...spaces.splice(otherIdx, 1));
   .space-list { display: flex; flex-direction: column; gap: 0.75rem; }
   .space-card {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    justify-content: space-between;
     gap: 1rem;
     min-height: 145px;
     border: 1px solid var(--border);
@@ -60,13 +61,19 @@ if (otherIdx > -1) spaces.push(...spaces.splice(otherIdx, 1));
     text-decoration: none;
     transform: translateY(-1px);
   }
-  .space-info { flex: 1; min-width: 0; }
-  .space-info h2 {
+  .space-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .space-head h2 {
+    flex: 1;
     font-size: 1.15rem;
     font-weight: 600;
-    margin: 0 0 0.2rem;
+    margin: 0;
   }
-  .space-info p {
+  .space-meta {
     color: var(--text-mute);
     font-size: 0.85rem;
     margin: 0;
