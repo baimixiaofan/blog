@@ -145,6 +145,7 @@ async function writeDoc({ title, content, sourceUrl, spacePrefix }) {
     `summary: ${yamlEscape(`飞书云文档 · 同步于 ${date}`)}`,
     `date: ${date}`,
     `url: ${sourceUrl}`,
+    ...(spacePrefix ? [`space: ${yamlEscape(spacePrefix)}`] : []),
     '---',
     '',
     content,

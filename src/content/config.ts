@@ -19,6 +19,7 @@ const blog = defineCollection({
     date: z.date(),
     url: z.string().url(),
     cover: z.string().optional(),
+    space: z.string().optional(),
   }),
 });
 

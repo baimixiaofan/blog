@@ -5,25 +5,41 @@ import { getCollection } from 'astro:content';
 
 const posts = (await getCollection('blog'))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+// 按知识库分组;组间按该库最新文章日期倒序(posts 已全局倒序,首次出现即最新),"其他"(本地文章)固定排最后
+const grouped = new Map<string, typeof posts>();
+for (const p of posts) {
+  const key = p.data.space || '其他';
+  if (!grouped.has(key)) grouped.set(key, []);
+  grouped.get(key)!.push(p);
+}
+const groups = [...grouped.entries()];
+const otherIdx = groups.findIndex(([k]) => k === '其他');
+if (otherIdx > -1) groups.push(...groups.splice(otherIdx, 1));
 ---
 <Layout title="博客 - 范升耀" description="文章列表 (内容托管于飞书云文档)">
   <div class="container">
     <h1>博客</h1>
-    <p class="intro">文章托管在 <strong>飞书云文档</strong>,点击卡片跳转到原文阅读。</p>
+    <p class="intro">文章托管在 <strong>飞书云文档</strong>,按知识库分组,点击卡片跳转到原文阅读。</p>
     {posts.length === 0 ? (
       <p class="empty">还没有文章。敬请期待。</p>
     ) : (
-      <div class="doc-list">
-        {posts.map(p => (
-          <BlogCard
-            title={p.data.title}
-            summary={p.data.summary}
-            date={p.data.date}
-            url={p.data.url}
-            cover={p.data.cover}
-          />
-        ))}
-      </div>
+      groups.map(([space, list]) => (
+        <section class="space-group">
+          <h2>{space} <span class="count">{list.length} 篇</span></h2>
+          <div class="doc-list">
+            {list.map(p => (
+              <BlogCard
+                title={p.data.title}
+                summary={p.data.summary}
+                date={p.data.date}
+                url={p.data.url}
+                cover={p.data.cover}
+              />
+            ))}
+          </div>
+        </section>
+      ))
     )}
   </div>
 </Layout>
@@ -31,5 +47,23 @@ const posts = (await getCollection('blog'))
 <style>
   .intro { color: var(--text-dim); margin-bottom: 1.5rem; }
   .empty { color: var(--text-dim); padding: 3rem 0; text-align: center; }
+  .space-group { margin-bottom: 2.5rem; }
+  .space-group h2 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .space-group h2::before {
+    content: '📚 ';
+    font-size: 1.1rem;
+  }
+  .count {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--text-mute);
+    margin-left: 0.4rem;
+  }
   .doc-list { margin-top: 0.5rem; }
 </style>

@@ -42,7 +42,10 @@ npm run build >> "$LOG" 2>&1 || {
 
 # 5. 更新 nginx 配置
 cp scripts/nginx-config /etc/nginx/sites-available/baimeixiaofan
-cp /etc/nginx/sites-available/baimeixiaofan /etc/nginx/sites-enabled/
+# sites-enabled 里可能是指向 sites-available 的软链接,此时无需再复制(否则 cp 报 same file 且 set -e 退出)
+if [ ! -L /etc/nginx/sites-enabled/baimeixiaofan ]; then
+  cp /etc/nginx/sites-available/baimeixiaofan /etc/nginx/sites-enabled/baimeixiaofan
+fi
 nginx -t && systemctl reload nginx || true
 
 # 6. 部署到 nginx (清理旧文件,保留 .well-known 给 certbot)
