@@ -1,0 +1,55 @@
+---
+import Layout from '../../components/Layout.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blog'))
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  const grouped = new Map<string, { name: string; posts: typeof posts }>();
+  for (const p of posts) {
+    const slug = p.data.spaceSlug || 'other';
+    if (!grouped.has(slug)) grouped.set(slug, { name: p.data.space || '其他', posts: [] });
+    grouped.get(slug)!.posts.push(p);
+  }
+  const spaces = [...grouped.entries()].map(([slug, g]) => ({ slug, ...g }));
+  const otherIdx = spaces.findIndex(s => s.slug === 'other');
+  if (otherIdx > -1) spaces.push(...spaces.splice(otherIdx, 1));
+  return spaces.map(s => ({
+    params: { space: s.slug },
+    props: { name: s.name, posts: s.posts },
+  }));
+}
+
+const { name, posts } = Astro.props;
+---
+<Layout title={`${name} - 范升耀`} description={`知识库「${name}」的文章列表`}>
+  <div class="container">
+    <a href="/blog/" class="back">← 全部知识库</a>
+    <h1>{name}</h1>
+    <p class="intro">{posts.length} 篇文章,内容托管在 <strong>飞书云文档</strong>,点击卡片跳转到原文阅读。</p>
+    <div class="doc-list">
+      {posts.map(p => (
+        <BlogCard
+          title={p.data.title}
+          summary={p.data.summary}
+          date={p.data.date}
+          url={p.data.url}
+          cover={p.data.cover}
+        />
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .back {
+    display: inline-block;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+  .back:hover { color: var(--accent); text-decoration: none; }
+  .intro { color: var(--text-dim); margin-bottom: 1.5rem; }
+  .doc-list { margin-top: 0.5rem; }
+</style>

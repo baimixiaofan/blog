@@ -20,6 +20,7 @@ const blog = defineCollection({
     url: z.string().url(),
     cover: z.string().optional(),
     space: z.string().optional(),
+    spaceSlug: z.string().optional(),
   }),
 });
 
