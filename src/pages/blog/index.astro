@@ -19,14 +19,13 @@ if (otherIdx > -1) spaces.push(...spaces.splice(otherIdx, 1));
 <Layout title="博客 - 范升耀" description="文章列表 (内容托管于飞书云文档)">
   <div class="container">
     <h1>博客</h1>
-    <p class="intro">文章托管在 <strong>飞书云文档</strong>,按知识库组织,点击知识库查看里面的文章。</p>
+    <p class="intro">文章托管在飞书云文档,按知识库组织。</p>
     {spaces.length === 0 ? (
       <p class="empty">还没有文章。敬请期待。</p>
     ) : (
       <div class="space-list">
         {spaces.map(s => (
           <a href={`/blog/${s.slug}/`} class="space-card">
-            <div class="space-icon" aria-hidden="true">📚</div>
             <div class="space-info">
               <h2>{s.name}</h2>
               <p>{s.posts.length} 篇文章 · 最近更新 {s.posts[0].data.date.toISOString().slice(0, 10)}</p>
@@ -60,7 +59,6 @@ if (otherIdx > -1) spaces.push(...spaces.splice(otherIdx, 1));
     text-decoration: none;
     transform: translateY(-1px);
   }
-  .space-icon { font-size: 1.6rem; }
   .space-info { flex: 1; min-width: 0; }
   .space-info h2 {
     font-size: 1.15rem;

@@ -27,7 +27,7 @@ const { name, posts } = Astro.props;
   <div class="container">
     <a href="/blog/" class="back">← 全部知识库</a>
     <h1>{name}</h1>
-    <p class="intro">{posts.length} 篇文章,内容托管在 <strong>飞书云文档</strong>,点击卡片跳转到原文阅读。</p>
+    <p class="intro">{posts.length} 篇文章。</p>
     <div class="doc-list">
       {posts.map(p => (
         <BlogCard
