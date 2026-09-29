@@ -26,10 +26,8 @@ if (otherIdx > -1) spaces.push(...spaces.splice(otherIdx, 1));
       <div class="space-list">
         {spaces.map(s => (
           <a href={`/blog/${s.slug}/`} class="space-card">
-            <div class="space-head">
-              <h2>{s.name}</h2>
-              <span class="arrow" aria-hidden="true">→</span>
-            </div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <h2>{s.name}</h2>
             <p class="space-meta">{s.posts.length} 篇文章 · 最近更新 {s.posts[0].data.date.toISOString().slice(0, 10)}</p>
           </a>
         ))}
@@ -43,6 +41,7 @@ if (otherIdx > -1) spaces.push(...spaces.splice(otherIdx, 1));
   .empty { color: var(--text-dim); padding: 3rem 0; text-align: center; }
   .space-list { display: flex; flex-direction: column; gap: 0.75rem; }
   .space-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -61,23 +60,24 @@ if (otherIdx > -1) spaces.push(...spaces.splice(otherIdx, 1));
     text-decoration: none;
     transform: translateY(-1px);
   }
-  .space-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-  .space-head h2 {
-    flex: 1;
+  .space-card h2 {
     font-size: 1.15rem;
     font-weight: 600;
     margin: 0;
+    padding-right: 2rem;
   }
   .space-meta {
     color: var(--text-mute);
     font-size: 0.85rem;
     margin: 0;
   }
-  .arrow { color: var(--text-mute); font-size: 1.1rem; }
+  .arrow {
+    position: absolute;
+    right: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-mute);
+    font-size: 1.1rem;
+  }
   .space-card:hover .arrow { color: var(--accent); }
 </style>
